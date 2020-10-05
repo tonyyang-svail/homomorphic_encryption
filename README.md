@@ -1,3 +1,3 @@
-# Notes Homomorphic Encryption
+# Homomorphic Encryption
 
 notes on homomorphic encryption
