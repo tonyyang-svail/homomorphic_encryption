@@ -90,31 +90,41 @@ func TestAdditiveHomomorphic(t *testing.T) {
 	r := require.New(t)
 
 	for _, dataSize := range []int64{10, 100, 1000, 10000, 100000} {
-		start := time.Now()
-
-		pub, priv, err := KeyGen(&rsaPrimePairGenerator{nBits: 2048})
-		r.NoError(err)
-
+		fmt.Println("-----------------")
 		ms := []*big.Int{}
 		for i := int64(1); i <= dataSize; i++ {
 			ms = append(ms, big.NewInt(1))
 		}
 
-		intGen := &incIntGen{}
+		start := time.Now()
+		pub, priv, err := KeyGen(&rsaPrimePairGenerator{nBits: 2048})
+		r.NoError(err)
+		fmt.Printf("dataSize:\t%v\tkey gen:\t%v\n", dataSize, time.Since(start))
+
 		cs := []*big.Int{}
-		for _, m := range ms {
-			cs = append(cs, Encrypt(pub, m, intGen))
+		{
+			start := time.Now()
+			intGen := &incIntGen{}
+			for _, m := range ms {
+				cs = append(cs, Encrypt(pub, m, intGen))
+			}
+			fmt.Printf("dataSize:\t%v\tencrypt:\t%v\n", dataSize, time.Since(start))
 		}
 
 		mul := big.NewInt(1)
-		for _, c := range cs {
-			mul.Mul(mul, c)
-			mul.Mod(mul, pub.n)
+		{
+			start := time.Now()
+			for _, c := range cs {
+				mul.Mul(mul, c)
+				mul.Mod(mul, pub.n)
+			}
+			fmt.Printf("dataSize:\t%v\thomoAdd:\t%v\n", dataSize, time.Since(start))
 		}
 
-		r.Equal(big.NewInt(dataSize), Decrypt(pub, priv, mul))
-
-		elapsed := time.Since(start)
-		fmt.Printf("dataSize:\t%v\ttime elapsed:\t%v\n", dataSize, elapsed)
+		{
+			start := time.Now()
+			r.Equal(big.NewInt(dataSize), Decrypt(pub, priv, mul))
+			fmt.Printf("dataSize:\t%v\tdecrypt:\t%v\n", dataSize, time.Since(start))
+		}
 	}
 }
