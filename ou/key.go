@@ -5,8 +5,6 @@ import (
 	"math/big"
 )
 
-const nBits = 16
-
 type publicKey struct {
 	n *big.Int
 	g *big.Int

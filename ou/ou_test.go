@@ -1,9 +1,12 @@
 package ou
 
 import (
-	"github.com/stretchr/testify/require"
+	"fmt"
 	"math/big"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 type mockPrimePairGen struct{}
@@ -72,4 +75,46 @@ func TestDecrypt(t *testing.T) {
 
 	c := big.NewInt(34)
 	r.Equal(big.NewInt(2), Decrypt(pub, priv, c))
+}
+
+type incIntGen struct {
+	count int64
+}
+
+func (g *incIntGen) Next() *big.Int {
+	g.count = g.count + 1
+	return big.NewInt(g.count)
+}
+
+func TestAdditiveHomomorphic(t *testing.T) {
+	r := require.New(t)
+
+	for _, dataSize := range []int64{10, 100, 1000, 10000, 100000} {
+		start := time.Now()
+
+		pub, priv, err := KeyGen(&rsaPrimePairGenerator{nBits: 2048})
+		r.NoError(err)
+
+		ms := []*big.Int{}
+		for i := int64(1); i <= dataSize; i++ {
+			ms = append(ms, big.NewInt(1))
+		}
+
+		intGen := &incIntGen{}
+		cs := []*big.Int{}
+		for _, m := range ms {
+			cs = append(cs, Encrypt(pub, m, intGen))
+		}
+
+		mul := big.NewInt(1)
+		for _, c := range cs {
+			mul.Mul(mul, c)
+			mul.Mod(mul, pub.n)
+		}
+
+		r.Equal(big.NewInt(dataSize), Decrypt(pub, priv, mul))
+
+		elapsed := time.Since(start)
+		fmt.Printf("dataSize:\t%v\ttime elapsed:\t%v\n", dataSize, elapsed)
+	}
 }

@@ -11,10 +11,12 @@ type primePairGenerator interface {
 	Next() (*big.Int, *big.Int, error)
 }
 
-type rsaPrimePairGenerator struct{}
+type rsaPrimePairGenerator struct {
+	nBits int
+}
 
-func (*rsaPrimePairGenerator) Next() (*big.Int, *big.Int, error) {
-	key, err := rsa.GenerateKey(rand.Reader, nBits)
+func (p *rsaPrimePairGenerator) Next() (*big.Int, *big.Int, error) {
+	key, err := rsa.GenerateKey(rand.Reader, p.nBits)
 	if err != nil {
 		return nil, nil, err
 	}
