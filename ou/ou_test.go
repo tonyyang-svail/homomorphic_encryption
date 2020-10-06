@@ -6,10 +6,16 @@ import (
 	"testing"
 )
 
+type mockPrimePairGen struct{}
+
+func (*mockPrimePairGen) Next() (*big.Int, *big.Int, error) {
+	return big.NewInt(3), big.NewInt(5), nil
+}
+
 func TestKeyGen(t *testing.T) {
 	r := require.New(t)
 
-	pub, priv, err := KeyGen(false)
+	pub, priv, err := KeyGen(&mockPrimePairGen{})
 	r.NoError(err)
 
 	r.Equal(big.NewInt(int64(45)), pub.n)

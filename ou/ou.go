@@ -1,29 +1,11 @@
 package ou
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"fmt"
 	"math/big"
 )
 
-func genTwoPrimes(useRSA bool) (*big.Int, *big.Int, error) {
-	if useRSA {
-		key, err := rsa.GenerateKey(rand.Reader, nBits)
-		if err != nil {
-			return nil, nil, err
-		}
-		if len(key.Primes) != 2 {
-			return nil, nil, fmt.Errorf("KeyGen: failed at generating two primes using RSA")
-		}
-		return key.Primes[0], key.Primes[1], nil
-	}
-
-	return big.NewInt(3), big.NewInt(5), nil
-}
-
-func KeyGen(useRSA bool) (*publicKey, *privateKey, error) {
-	p, q, err := genTwoPrimes(useRSA)
+func KeyGen(generator primePairGenerator) (*publicKey, *privateKey, error) {
+	p, q, err := generator.Next()
 	if err != nil {
 		return nil, nil, err
 	}
